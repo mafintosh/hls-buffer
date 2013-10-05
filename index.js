@@ -53,7 +53,7 @@ module.exports = function(url, opts) {
 		if (fetching) return;
 
 		fetching = queued.some(function(q, i) {
-			if (q.finished) return;
+			if (q.finished || q.source) return;
 			if (i > max) return true;
 
 			var req = request(q.url, {agent:agent});
