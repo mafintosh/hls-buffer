@@ -1,4 +1,5 @@
 var stream = require('stream-wrapper');
+var ForeverAgent = require('forever-agent');
 var request = require('request');
 var once = require('once');
 var crypto = require('crypto');
@@ -11,25 +12,6 @@ var md5 = function(str) {
 	return crypto.createHash('md5').update(str).digest('hex');
 };
 
-var readPlaylist = function(playlistUrl, callback) {
-	var ts = [];
-	request(playlistUrl, function(err, response) {
-		if (response.statusCode !== 200) return callback();
-
-		var body = response.body.toString().trim();
-
-		body = body.split('\n').map(function(line) {
-			if (line[0] === '#') return line;
-			var url = resolveUrl(playlistUrl, line);
-			var id = '/'+md5(line)+'.ts';
-			ts.push({url:url, id:id});
-			return id;
-		}).join('\n')+'\n';
-
-		callback(null, ts, body);
-	});
-};
-
 module.exports = function(url, opts) {
 	if (!opts) opts = {};
 
@@ -37,6 +19,29 @@ module.exports = function(url, opts) {
 	var that = {};
 	var max = opts.max || 6; // default max ~6 in queue
 	var onplaylist;
+
+	var agent = undefined;
+
+	if (opts.agent !== false) agent = /^https/.test(url) ? new ForeverAgent.SSL() : new ForeverAgent();
+
+	var readPlaylist = function(playlistUrl, callback) {
+		var ts = [];
+		request(playlistUrl, {agent:agent}, function(err, response) {
+			if (response.statusCode !== 200) return callback();
+
+			var body = response.body.toString().trim();
+
+			body = body.split('\n').map(function(line) {
+				if (line[0] === '#') return line;
+				var url = resolveUrl(playlistUrl, line);
+				var id = '/'+md5(line)+'.ts';
+				ts.push({url:url, id:id});
+				return id;
+			}).join('\n')+'\n';
+
+			callback(null, ts, body);
+		});
+	};
 
 	var preload = function() {
 		if (that.destroyed) return;
@@ -47,10 +52,11 @@ module.exports = function(url, opts) {
 
 		if (fetching) return;
 
-		fetching = queued.some(function(q) {
+		fetching = queued.some(function(q, i) {
 			if (q.finished) return;
+			if (i > max) return true;
 
-			var req = request(q.url);
+			var req = request(q.url, {agent:agent});
 			var onclose = once(function() {
 				q.finished = true;
 				q.streams.forEach(function(s) {
@@ -129,8 +135,9 @@ module.exports = function(url, opts) {
 
 		// gc
 		queued.some(function(q) {
-			if (q.id !== hex) queued.shift();
-			return true;
+			if (q.id === hex) return true;
+			queued.shift();
+			if (q.source && !q.finished) q.destroy();
 		});
 
 		if (!queued[0]) return null;
