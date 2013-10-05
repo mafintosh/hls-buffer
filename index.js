@@ -17,7 +17,7 @@ module.exports = function(url, opts) {
 
 	var queued = [];
 	var that = {};
-	var max = opts.max || 6; // default max ~6 in queue
+	var max = opts.max || 10; // default max ~10 in queue
 	var onplaylist;
 
 	var agent = undefined;

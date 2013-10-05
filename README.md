@@ -34,7 +34,7 @@ server.listen(8080);
 If you run the above example with your favorite http live streaming service a local preloading proxy
 will be started on `http://localhost:8080/index.m3u8`.
 
-Per default up to 8 segments will be buffered in ram. To change this pass `{max:number}` as the second parameter
+Per default up to 10 segments will be buffered in ram. To change this pass `{max:number}` as the second parameter
 to the constructor
 
 ## License
