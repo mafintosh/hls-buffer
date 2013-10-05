@@ -137,7 +137,7 @@ module.exports = function(url, opts) {
 		queued.some(function(q) {
 			if (q.id === hex) return true;
 			queued.shift();
-			if (q.source && !q.finished) q.destroy();
+			if (q.source && !q.finished) q.source.destroy();
 		});
 
 		if (!queued[0]) return null;
