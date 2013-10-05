@@ -1,12 +1,13 @@
 {
   "name": "hls-buffer",
   "description": "Preload and buffer http live streams (aka do not lag on crappy networks)",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "repository": "git://github.com/mafintosh/hls-buffer.git",
   "dependencies": {
     "thunky": "~0.1.0",
     "once": "~1.2.0",
     "stream-wrapper": "~0.1.2",
-    "request": "~2.27.0"
+    "request": "~2.27.0",
+    "forever-agent": "~0.5.0"
   }
 }
