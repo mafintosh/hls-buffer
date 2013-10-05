@@ -146,6 +146,7 @@ module.exports = function(url, opts) {
 		var rs = stream.readable();
 		var q = queued[0];
 
+		preload();
 		q.streams.push(rs);
 		q.buffers.forEach(function(b) {
 			rs.push(b);
