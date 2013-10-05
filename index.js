@@ -134,11 +134,12 @@ module.exports = function(url, opts) {
 		if (that.destroyed) return null;
 
 		// gc
-		queued.some(function(q) {
-			if (q.id === hex) return true;
+		while (queued.length) {
+			var q = queued[0];
+			if (q.id === hex) break;
 			queued.shift();
 			if (q.source && !q.finished) q.source.destroy();
-		});
+		}
 
 		if (!queued[0]) return null;
 
